@@ -1,0 +1,275 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Auction photo review</title>
+<style>
+:root{font-family:system-ui,sans-serif;color:#222}body{margin:0;background:#f3f5f7}header{background:#18304b;color:white;padding:18px 24px;position:sticky;top:0;z-index:5;box-shadow:0 2px 10px #0002}h1{font-size:23px;margin:0 0 6px}p{margin:8px 0;line-height:1.45}button,input,select{font:inherit}button{border:1px solid #9bb0c4;border-radius:5px;padding:7px 11px;background:white;cursor:pointer}button.primary{background:#1c6d47;color:white;border-color:#1c6d47;font-weight:700}button:disabled{opacity:.45;cursor:not-allowed}main{max-width:1600px;margin:auto;padding:16px}.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.note{background:#fff4cd;border-left:4px solid #ca9300;padding:10px 14px;margin-bottom:15px}.group{background:white;border:1px solid #d4dbe3;border-radius:8px;margin:14px 0;padding:12px}.grouphead{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.grouphead h2{font-size:17px;margin:0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:10px}.card{border:1px solid #ced5dc;border-radius:6px;padding:8px;min-width:0}.frame{position:relative;width:100%;line-height:0;background:#ddd}.frame img{width:100%;height:auto}.cropbox{position:absolute;box-sizing:border-box;border:2px solid #ff3b20;pointer-events:none}.centerline{position:absolute;top:0;bottom:0;width:0;border-left:2px dashed #1475d1;pointer-events:none}.profile-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid #ddd}.profile-row input[type=number]{width:80px}.profile-row input[type=text]{width:140px}.new-profile input[type=number]{width:90px}dialog{border:0;border-radius:10px;max-width:950px;width:90%;box-shadow:0 10px 40px #0007}dialog::backdrop{background:#0008}.compare{display:grid;grid-template-columns:1fr 1fr;gap:14px}.compare canvas{width:100%;height:auto}.centercontrol input{width:72px}.outputname{font-size:13px;font-weight:600;color:#134c79;overflow-wrap:anywhere}.focus-warning{padding:5px;background:#fff1d2;color:#793700;border-radius:4px;font-size:12px;margin:5px 0}.deselected{opacity:.55}.centerstatus{font-size:12px;color:#8b3a0d}.frame{cursor:crosshair}.filename{font-weight:700;font-size:13px;overflow-wrap:anywhere}.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;margin:5px 0}.controls input[type=text]{width:62px}.controls select{max-width:110px}.coords{font-size:12px;display:grid;grid-template-columns:repeat(4,1fr);gap:3px}.coords label{min-width:0}.coords input{box-sizing:border-box;width:100%}.flag{font-size:12px;color:#8b3a0d;margin-top:4px}.count{font-size:13px}.help{font-size:13px}.legend{display:inline-block;border:2px solid #ff3b20;width:12px;height:12px;vertical-align:middle}label{cursor:pointer}input:focus,select:focus,button:focus{outline:2px solid #2676ba}
+</style></head><body>
+<header><h1>Auction photo review</h1><div class="toolbar"><label>Auction <input id="auction" type="text" size="6"></label><label>Contrast for cropped output <select id="contrast"><option value="full">Full range (exact)</option><option value="0.5">Stronger (0.5% clipped)</option><option value="none">None</option></select></label><label>Focus warning threshold <input id="focus-threshold" type="number" min="0" step="25" value="400" style="width:75px"></label><button id="manage-profiles">Size profiles</button><button id="center-detected">Use improved detected centers</button><button id="center-all">Center all crops</button><label>Crop margin % <input id="crop-margin" type="number" min="0" max="100" step="1" value="20" style="width:65px"></label><button id="apply-margin-all">Apply margin to all included</button><button id="review-all">Check all selected as reviewed</button><button class="primary" id="download">Download reviewed plan</button><button class="primary" id="process-output" disabled>Create output images</button><button id="save-work">Save work in progress</button><label>Load saved plan <input type="file" id="load" accept="application/json,.json"></label><span id="summary" class="count"></span></div></header>
+<main><div class="note" id="output-status" role="status" aria-live="polite">Save a reviewed plan or load an existing reviewed plan to enable Create output images. Keep the desktop app open.</div><div class="note"><strong>All assignments are provisional.</strong> Newly analyzed photos start selected and Reviewed checked. Inspect warnings and correct or exclude problem images. The photos remain untouched. Check the can number, actual view, and red crop box for each included image, then mark it reviewed. Gaps, extra images and similar cans can shift later numbering. In two-photo mode <b>a = front, b = seam</b>; the seam is not detected automatically. In six-photo mode <b>a–f = face, right, back, left, top, bottom</b>. For a top/bottom photo, choose End view; only e or f is available. Inspect the image to choose which. Correct the photo type if automatic detection is wrong. <span class="legend"></span> Red outline is the proposed crop, not a verified object boundary.</div><p class="help">The blue line marks the chosen center of the can. Use improved detected centers restores the new automatic estimates, including after loading a previous review plan. Click its center in a photo, or enter Can center X, then use Center crop. Center all crops uses the current centers for all included photos. The crop width and height are preserved; at an image edge the crop may not be fully centered. Crop margin is background space per side as a percentage of the detected can width and height: 0 is tighter, 20 leaves more space, and 40 leaves still more. Set the margin and apply it to all included photos or to an individual photo. This replaces existing crop adjustments for affected photos and clears Reviewed when a crop changes. Photos with no detected bounds are skipped. Inspect every crop: the detected bounds may miss part of a can. Requested background can be limited by the original photo edges. Adjust crop coordinates in pixels on the correctly oriented image. Uncheck Include to exclude an image completely from output. The top Check all selected as reviewed button checks every included photo at once. The group Reviewed button checks or unchecks that group’s selected photos; excluded photos stay unchecked. Check any focus warnings and unresolved view letters before producing output. Focus warnings indicate low image detail, which can result from blur or a plain surface; inspect them and do not assume unflagged images are sharp. Enlarged focus detail is provided for photos flagged during analysis; newly flagged photos after changing the threshold may require opening the original. Groups are only a visual aid: edit the can number and letter on each card to handle mistakes or mixed sequences. Download reviewed plan includes only photos that are both included and Reviewed; others are omitted. To preserve every decision and resume unfinished work, use Save work in progress. Changes remain in this browser only until you save a file. Create a size profile with output width, height and background, then assign the same profile to every view of a can. Can types are chosen by you; the program does not identify them automatically. Each profile fits the whole crop into a fixed canvas without distortion; unenlarged crops may have extra background. Size profiles and the contrast setting apply to Python-cropped JPEGs, not byte-identical copies for PSP; Preview output shows an approximation from the thumbnail. Each RGB channel is stretched independently, which may change color; the stronger setting clips 0.5% of pixels at each end. No photos or data are uploaded.</p><div id="groups"></div></main><dialog id="profile-modal"><h2>Output size profiles</h2><p>Create a profile for each can type, and apply the same profile to every included view of each can, including its top and bottom. The entire crop fits within the canvas without distortion; unused space uses the chosen background color. Enlarge is off by default. Profiles apply only in cropped-output mode. A photo with No fixed size keeps its crop dimensions, which may differ.</p><div id="profile-list"></div><h3>Add a profile</h3><div class="profile-row new-profile"><label>Name <input id="new-profile-name" type="text"></label><label>Width px <input id="new-profile-width" type="number" min="1" max="10000"></label><label>Height px <input id="new-profile-height" type="number" min="1" max="10000"></label><label>Background <input id="new-profile-background" type="color" value="#ffffff"></label><label><input id="new-profile-upscale" type="checkbox"> Enlarge small crops</label><button type="button" id="add-profile">Add profile</button></div><div class="profile-row"><label>Choice for every included photo <select id="profile-apply-select"></select></label><button type="button" id="apply-profile-all">Apply to all included</button></div><form method="dialog"><button>Close</button></form></dialog><dialog id="focus-modal"><h2 id="focus-title">Focus detail</h2><p>This is an enlarged, unsharpened preview of the initial proposed crop from the original photograph; it does not change when the crop is edited. Inspect edges and lettering; smooth surfaces can produce a false warning.</p><img id="focus-image" alt="Enlarged photo detail" style="max-width:100%;height:auto"><form method="dialog"><button>Close</button></form></dialog><dialog id="contrast-modal"><h2 id="contrast-title"></h2><p id="contrast-method"></p><p>Preview uses the thumbnail. Final output is calculated from the full-resolution crop.</p><div class="compare"><div><strong>Original crop</strong><canvas id="contrast-before"></canvas></div><div><strong>Processed output preview</strong><canvas id="contrast-after"></canvas></div></div><form method="dialog"><button>Close</button></form></dialog>
+<script>
+const initial=/*REVIEW_DATA*/;
+const thumbnailData=/*THUMBNAIL_DATA*/;
+const focusDetailData=/*FOCUS_DETAIL_DATA*/;
+const recommendedFocus=initial.records.map(r=>r.focus_score ?? null);
+const recommendedCenters=initial.records.map(r => r.center_x ?? (r.box ? Math.round(r.box[0]+r.box[2]/2) : Math.round(r.width/2)));
+let data=JSON.parse(JSON.stringify(initial));
+const root=document.getElementById('groups'), auction=document.getElementById('auction'),summary=document.getElementById('summary'),contrast=document.getElementById('contrast');
+function el(tag,text,cls){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n}
+function refreshSummary(){let included=data.records.filter(r=>r.include),ready=included.filter(r=>r.reviewed).length;summary.textContent=`${ready} ready for output · ${included.length-ready} included but unreviewed · ${data.records.length-included.length} excluded`;}
+function focusWarning(r,threshold=data.focus_threshold??400){return r.focus_score==null||r.focus_score<threshold}
+function ensureViewKind(r){
+ if(!['side','end','unknown'].includes(r.view_kind)){
+  r.view_kind=['e','f'].includes(r.view)?'end':['a','b','c','d'].includes(r.view)?'side':r.shape==='end'?'end':r.shape==='upright'?'side':'unknown';
+ }
+}
+function allowedViews(r){ensureViewKind(r);return r.view_kind==='end'?['e','f']:r.view_kind==='side'?(data.views===2?['a','b']:['a','b','c','d']):[]}
+function proposedName(r){
+ const auctionValue=String(data.auction||''),can=String(r.can||''),view=String(r.view||'').toLowerCase(),match=String(r.name||'').match(/(\.[^.]+)$/);
+ if(!/^[A-Za-z0-9-]+$/.test(auctionValue)||!/^[0-9]+$/.test(can)||!allowedViews(r).includes(view)||!match)return null;
+ return `${auctionValue}_${can}${view}${match[1].toLowerCase()}`;
+}
+function cropRect(r,box){let [x,y,w,h]=r.crop;Object.assign(box.style,{left:(100*x/r.width)+'%',top:(100*y/r.height)+'%',width:(100*w/r.width)+'%',height:(100*h/r.height)+'%'});}
+function profileOptions(select, selected=''){
+ select.replaceChildren();let none=el('option','No fixed size');none.value='';select.append(none);
+ for(const [id,p] of Object.entries(data.profiles||{})){let option=el('option',`${p.label} (${p.width}×${p.height})`);option.value=id;select.append(option)}
+ select.value=selected;
+}
+function markProfileUnreviewed(id){for(const r of data.records)if(r.profile_id===id)r.reviewed=false}
+function drawProfiles(){
+ data.profiles=data.profiles||{};
+ let container=document.getElementById('profile-list');container.replaceChildren();
+ for(const [id,p] of Object.entries(data.profiles)){
+  let row=el('div',undefined,'profile-row');
+  function field(label,type,value,change){let lab=el('label',label+' '),input=el('input');input.type=type;input.value=value;if(type==='number'){input.min='1';input.max='10000'}input.onchange=()=>change(input);lab.append(input);row.append(lab);return input}
+  field('Name','text',p.label,input=>{let name=input.value.trim();if(!name){alert('Enter a profile name.');input.value=p.label;return}p.label=name;render()});
+  for(const prop of ['width','height'])field(prop==='width'?'Width px':'Height px','number',p[prop],input=>{let n=Number(input.value),other=prop==='width'?p.height:p.width;if(!Number.isInteger(n)||n<1||n>10000||n*other>40000000){alert('Use dimensions from 1 to 10,000 pixels, up to 40 megapixels total.');input.value=p[prop];return}p[prop]=n;markProfileUnreviewed(id);render();refreshSummary()});
+  field('Background','color',p.background,input=>{p.background=input.value;markProfileUnreviewed(id);render()});
+  let lab=el('label'),up=el('input');up.type='checkbox';up.checked=p.upscale;up.onchange=()=>{p.upscale=up.checked;markProfileUnreviewed(id);render()};lab.append(up,' Enlarge small crops');row.append(lab);
+  let remove=el('button','Remove');remove.type='button';remove.onclick=()=>{if(!confirm('Remove this size profile? It will be unassigned from its photos.'))return;delete data.profiles[id];for(const r of data.records)if(r.profile_id===id){r.profile_id='';r.reviewed=false}drawProfiles();render()};row.append(remove);container.append(row);
+ }
+ profileOptions(document.getElementById('profile-apply-select'));
+}
+document.getElementById('manage-profiles').onclick=()=>{drawProfiles();document.getElementById('profile-modal').showModal()};
+document.getElementById('add-profile').onclick=()=>{
+ const name=document.getElementById('new-profile-name'),width=document.getElementById('new-profile-width'),height=document.getElementById('new-profile-height');let label=name.value.trim(),w=Number(width.value),h=Number(height.value);
+ if(!label||!Number.isInteger(w)||!Number.isInteger(h)||w<1||h<1||w>10000||h>10000||w*h>40000000){alert('Enter a name and dimensions from 1 to 10,000 pixels, up to 40 megapixels total.');return}
+ data.profiles=data.profiles||{};let id='profile_'+Date.now()+'_'+Math.floor(Math.random()*1000000);data.profiles[id]={label,width:w,height:h,background:document.getElementById('new-profile-background').value,upscale:document.getElementById('new-profile-upscale').checked};name.value='';width.value='';height.value='';drawProfiles();render();
+};
+document.getElementById('apply-profile-all').onclick=()=>{
+ let id=document.getElementById('profile-apply-select').value;if(!confirm('Apply this size choice to every included photo? Changed photos must be reviewed again.'))return;
+ for(const r of data.records)if(r.include&&(r.profile_id||'')!==id){r.profile_id=id;r.reviewed=false}render();refreshSummary();
+};
+
+function previewContrast(img,r){
+ if(!img.complete||!img.naturalWidth){alert('The photo is still loading; try again.');return}
+ const [x,y,w,h]=r.crop;
+ if(!Number.isInteger(x)||!Number.isInteger(y)||!Number.isInteger(w)||!Number.isInteger(h)||x<0||y<0||w<=0||h<=0||x+w>r.width||y+h>r.height){alert('Enter a valid crop rectangle first.');return}
+ const sx=img.naturalWidth/r.width,sy=img.naturalHeight/r.height;
+ const sw=Math.max(1,Math.round(w*sx)),sh=Math.max(1,Math.round(h*sy));
+ const before=document.getElementById('contrast-before'),after=document.getElementById('contrast-after');
+ before.width=after.width=sw;before.height=after.height=sh;
+ let ctx=before.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,x*sx,y*sy,w*sx,h*sy,0,0,sw,sh);
+ let pixels=ctx.getImageData(0,0,sw,sh),mode=data.contrast||'full';
+ if(mode!=='none'){
+  let hist=Array.from({length:3},()=>new Uint32Array(256));
+  for(let i=0;i<pixels.data.length;i+=4)for(let c=0;c<3;c++)hist[c][pixels.data[i+c]]++;
+  const cut=mode==='0.5'?Math.floor(sw*sh*.005):0;
+  const limits=hist.map(channel=>{
+   let low=0,high=255,total=0;
+   while(low<255 && total+channel[low]<=cut){total+=channel[low++]}total=0;
+   while(high>0 && total+channel[high]<=cut){total+=channel[high--]}return [low,high];
+  });
+  for(let i=0;i<pixels.data.length;i+=4)for(let c=0;c<3;c++){
+   const [lo,hi]=limits[c];if(hi>lo)pixels.data[i+c]=Math.max(0,Math.min(255,Math.floor((pixels.data[i+c]-lo)*255/(hi-lo))));
+  }
+ }
+ after.getContext('2d').putImageData(pixels,0,0);
+ const profile=(data.profiles||{})[r.profile_id||''];
+ if(profile){
+  let source=document.createElement('canvas');source.width=sw;source.height=sh;source.getContext('2d').putImageData(pixels,0,0);
+  let factor=Math.min(profile.width/w,profile.height/h);if(!profile.upscale)factor=Math.min(factor,1);
+  const fw=Math.max(1,Math.min(profile.width,Math.round(w*factor))),fh=Math.max(1,Math.min(profile.height,Math.round(h*factor)));
+  let previewScale=Math.min(1,500/profile.width,500/profile.height);after.width=Math.max(1,Math.round(profile.width*previewScale));after.height=Math.max(1,Math.round(profile.height*previewScale));
+  let target=after.getContext('2d');target.fillStyle=profile.background;target.fillRect(0,0,after.width,after.height);target.drawImage(source,((profile.width-fw)/2)*previewScale,((profile.height-fh)/2)*previewScale,fw*previewScale,fh*previewScale);
+ }
+ document.getElementById('contrast-title').textContent=`Contrast preview · ${r.name}`;
+ document.getElementById('contrast-method').textContent=mode==='0.5'?'Stronger: 0.5% clipped at each end of each RGB channel':mode==='full'?'Exact full range: per-channel minimum to maximum, with no intentional clipping':'No contrast adjustment';
+ if(profile)document.getElementById('contrast-method').textContent+=` · Size profile: ${profile.label}, ${profile.width}×${profile.height} px`;
+ document.getElementById('contrast-modal').showModal();
+}
+
+function ensureCenter(r){
+  if(!Number.isFinite(r.center_x))r.center_x=r.box?Math.round(r.box[0]+r.box[2]/2):Math.round(r.width/2);
+}
+function centerCrop(r){
+  ensureCenter(r);
+  const w=Number(r.crop[2]), center=Number(r.center_x);
+  if(!Number.isInteger(w)||w<=0||w>r.width||!Number.isInteger(center)||center<0||center>r.width)return {error:'Enter a valid crop width and can center.'};
+  const requested=Math.round(center-w/2), actual=Math.max(0,Math.min(r.width-w,requested));
+  const changed=r.crop[0]!==actual;
+  r.crop[0]=actual;
+  if(changed)r.reviewed=false;
+  return {changed,clamped:actual!==requested};
+}
+function selectedMargin(){
+ const raw=document.getElementById('crop-margin').value;
+ const n=Number(raw);
+ if(String(raw).trim()===''||!Number.isFinite(n)||n<0||n>100){alert('Enter a crop margin from 0 to 100 percent.');return null}
+ return n;
+}
+function applyCropMargin(r,percent){
+ const box=r.box;
+ if(!Array.isArray(box)||box.length!==4||!box.every(Number.isFinite)||!Number.isInteger(r.width)||!Number.isInteger(r.height)||r.width<=0||r.height<=0)return {error:'No usable detected can bounds; adjust this crop manually.'};
+ let [x,y,bw,bh]=box;
+ if(bw<=0||bh<=0||x<0||y<0||x+bw>r.width+1||y+bh>r.height+1)return {error:'No usable detected can bounds; adjust this crop manually.'};
+ // Account for a possible one-pixel rounding difference in saved detected boxes.
+ bw=Math.min(bw,r.width-x);bh=Math.min(bh,r.height-y);
+ if(bw<=0||bh<=0)return {error:'No usable detected can bounds; adjust this crop manually.'};
+ ensureCenter(r);const center=Number(r.center_x);
+ if(!Number.isFinite(center)||center<0||center>r.width)return {error:'Enter a valid can center first.'};
+ const padX=bw*percent/100,padY=bh*percent/100;
+ const radius=Math.max(center-x,x+bw-center)+padX;
+ const desiredWidth=Math.ceil(radius*2),desiredHeight=Math.ceil(bh+2*padY);
+ const width=Math.min(r.width,desiredWidth),height=Math.min(r.height,desiredHeight);
+ const idealLeft=Math.round(center-width/2),idealTop=Math.round(y+bh/2-height/2);
+ const left=Math.max(0,Math.min(r.width-width,idealLeft)),top=Math.max(0,Math.min(r.height-height,idealTop));
+ const next=[left,top,width,height],changed=next.some((value,i)=>value!==r.crop[i]);
+ const clamped=desiredWidth>r.width||desiredHeight>r.height||left!==idealLeft||top!==idealTop;
+ const missesBounds=left>x||left+width<x+bw||top>y||top+height<y+bh;
+ if(changed){r.crop=next;r.reviewed=false}
+ return {changed,clamped,missesBounds};
+}
+function recordMarginWarning(r,result){
+ if(result.error)r.margin_warning=result.error;
+ else if(result.missesBounds)r.margin_warning='Detected bounds do not fit in the crop; check the crop and can center manually.';
+ else if(result.clamped)r.margin_warning='Requested crop margin is limited by a photo edge; check the crop and centering.';
+ else delete r.margin_warning;
+}
+function render(){
+ root.replaceChildren(); auction.value=data.auction;contrast.value=data.contrast||'full';document.getElementById('focus-threshold').value=data.focus_threshold??400;
+ let ids=[...new Set(data.records.map(r=>r.group))];
+ for(const id of ids){
+  let records=data.records.filter(r=>r.group===id),section=el('section',undefined,'group'),head=el('div',undefined,'grouphead');
+  head.append(el('h2',`Provisional group ${id} · ${records.length} photos`));
+  let groupStatus=el('span','','count');function updateGroupStatus(){const included=records.filter(r=>r.include);groupStatus.textContent=`${included.filter(r=>r.reviewed).length}/${included.length} selected reviewed · ${records.length-included.length} excluded`};updateGroupStatus();head.append(groupStatus);
+  const included=records.filter(r=>r.include),allReviewed=included.length>0&&included.every(r=>r.reviewed);
+  let groupButton=el('button',allReviewed?'Reviewed: uncheck all':'Reviewed: check all');groupButton.setAttribute('aria-pressed',allReviewed?'true':'false');groupButton.onclick=()=>{const selected=records.filter(r=>r.include);if(!selected.length){alert('No images are selected in this group.');return}const value=!selected.every(r=>r.reviewed);records.forEach(r=>r.reviewed=r.include?value:false);render()};
+  head.append(groupButton);let groupProfile=el('select');groupProfile.title='Size profile for this displayed group';let selectedProfiles=[...new Set(records.filter(r=>r.include).map(r=>r.profile_id||''))];profileOptions(groupProfile,selectedProfiles.length===1?selectedProfiles[0]:'');let assign=el('button','Set size for group');assign.type='button';assign.onclick=()=>{for(const r of records){if(r.include&&(r.profile_id||'')!==groupProfile.value){r.profile_id=groupProfile.value;r.reviewed=false}}render()};head.append(groupProfile,assign);section.append(head);
+  let cards=el('div',undefined,'cards');
+  for(const r of records){
+   ensureCenter(r);ensureViewKind(r);
+   const card=el('article',undefined,'card');card.classList.toggle('deselected',!r.include);card.append(el('div',r.name,'filename'));let outputName=el('div','','outputname');card.append(outputName);function updateName(){let name=proposedName(r);outputName.textContent=name?`New: ${name}${r.include?'':' (excluded)'}`:`New: choose valid auction, can and view${r.include?'':' (excluded)'}`};updateName();
+   let frame=el('div',undefined,'frame'),img=el('img');img.src=thumbnailData[r.id]||r.thumbnail;img.alt=r.name;img.loading='lazy';
+   let box=el('div',undefined,'cropbox'),line=el('div',undefined,'centerline');frame.append(img,box,line);card.append(frame);
+   let flags=el('div',`${r.shape} · ${r.flags.join(' · ')}${r.margin_warning?' · '+r.margin_warning:''}`,'flag');card.append(flags);if(focusWarning(r)){let message=r.focus_score==null?'Focus could not be assessed; inspect this image.':`Possible soft focus or low-detail subject (score ${r.focus_score}); inspect this image.`;card.append(el('div',message,'focus-warning'))}if(focusDetailData[r.id]){let detailButton=el('button','Inspect focus detail');detailButton.type='button';detailButton.onclick=()=>{document.getElementById('focus-title').textContent=`Focus detail · ${r.name}`;document.getElementById('focus-image').src=focusDetailData[r.id];document.getElementById('focus-modal').showModal()};card.append(detailButton)}
+   let controls=el('div',undefined,'controls');
+   let include=el('input');include.type='checkbox';include.checked=r.include;include.onchange=()=>{r.include=include.checked;r.reviewed=false;reviewed.checked=false;reviewed.disabled=!r.include;marginButton.disabled=!r.include;card.classList.toggle('deselected',!r.include);updateName();updateGroupStatus();refreshSummary()};
+   let inclabel=el('label');inclabel.append(include,' Include in output');controls.append(inclabel);
+   let can=el('input');can.type='text';can.inputMode='numeric';can.value=r.can;can.title='Can number';can.oninput=()=>{r.can=can.value;r.reviewed=false;reviewed.checked=false;updateName();updateGroupStatus();refreshSummary()};
+   let canlabel=el('label','Can ');canlabel.append(can);controls.append(canlabel);
+   let kind=el('select');kind.title='Photo type: correct the detected type if needed';for(const [v,t] of [['unknown','Choose photo type'],['side','Side view'],['end','Top or bottom']]){let opt=el('option',t);opt.value=v;kind.append(opt)}kind.value=r.view_kind;
+   let view=el('select');view.title='View letter';function fillViews(){view.replaceChildren();let blank=el('option','Choose view');blank.value='';view.append(blank);let labels={a:'a: face',b:data.views===2?'b: seam':'b: right',c:'c: back',d:'d: left',e:'e: top',f:'f: bottom'};for(const v of allowedViews(r)){let option=el('option',labels[v]);option.value=v;view.append(option)}view.value=allowedViews(r).includes(r.view)?r.view:''}fillViews();
+   kind.onchange=()=>{r.view_kind=kind.value;if(!allowedViews(r).includes(r.view))r.view='';r.reviewed=false;reviewed.checked=false;fillViews();updateName();updateGroupStatus();refreshSummary()};controls.append(kind);
+   view.onchange=()=>{r.view=view.value;r.reviewed=false;reviewed.checked=false;updateName();updateGroupStatus();refreshSummary()};controls.append(view);let profileSelect=el('select');profileSelect.title='Output size profile';profileOptions(profileSelect,r.profile_id||'');profileSelect.onchange=()=>{r.profile_id=profileSelect.value;r.reviewed=false;reviewed.checked=false;updateGroupStatus();refreshSummary()};controls.append(profileSelect);card.append(controls);
+   let coordrow=el('div',undefined,'coords'),coords=[];
+   ['left','top','width','height'].forEach((label,i)=>{let lab=el('label',label),input=el('input');input.type='number';input.min='0';input.value=r.crop[i];input.onchange=()=>{r.crop[i]=Number(input.value);r.reviewed=false;reviewed.checked=false;redraw();updateGroupStatus();refreshSummary()};coords.push(input);lab.append(input);coordrow.append(lab)});card.append(coordrow);
+   let centerrow=el('div',undefined,'controls centercontrol'),centerlabel=el('label','Can center X '),centerInput=el('input');centerInput.type='number';centerInput.min='0';centerInput.max=String(r.width);centerInput.value=r.center_x;centerInput.title='Horizontal center of can in image pixels';centerlabel.append(centerInput);centerrow.append(centerlabel);
+   let button=el('button','Center crop');button.type='button';centerrow.append(button);let marginButton=el('button','Apply crop margin');marginButton.type='button';marginButton.disabled=!r.include;centerrow.append(marginButton);let contrastButton=el('button','Preview output');contrastButton.type='button';contrastButton.onclick=()=>previewContrast(img,r);centerrow.append(contrastButton);card.append(centerrow);
+   let status=el('div','','centerstatus');card.append(status);
+   let reviewline=el('div',undefined,'controls'),reviewed=el('input');reviewed.type='checkbox';reviewed.checked=r.reviewed;reviewed.disabled=!r.include;reviewed.onchange=()=>{r.reviewed=reviewed.checked;updateGroupStatus();refreshSummary()};let lab=el('label');lab.append(reviewed,' Reviewed');reviewline.append(lab);card.append(reviewline);
+   function redraw(){cropRect(r,box);line.style.left=(100*r.center_x/r.width)+'%';centerInput.value=r.center_x;coords.forEach((input,i)=>input.value=r.crop[i]);let delta=Math.abs(r.crop[0]+r.crop[2]/2-r.center_x);status.textContent=delta>1?'Crop is not centered on blue line; press Center crop.':''}
+   function recenter(){let result=centerCrop(r);if(result.error){status.textContent=result.error;return}r.reviewed=false;reviewed.checked=false;redraw();if(result.clamped)status.textContent='Cannot center fully: crop would extend outside the photo. Reduce crop width or adjust center.';updateGroupStatus();refreshSummary()}
+   centerInput.onchange=()=>{r.center_x=Number(centerInput.value);recenter()};button.onclick=recenter;
+   marginButton.onclick=()=>{const percent=selectedMargin();if(percent===null)return;const result=applyCropMargin(r,percent);recordMarginWarning(r,result);flags.textContent=`${r.shape} · ${r.flags.join(' · ')}${r.margin_warning?' · '+r.margin_warning:''}`;if(result.error){status.textContent=result.error;return}data.crop_margin=percent;reviewed.checked=r.reviewed;redraw();if(result.missesBounds)status.textContent='Detected bounds do not fit: check the crop and can center manually.';else if(result.clamped)status.textContent='Requested margin is limited by the photo edge; check crop and centering.';updateGroupStatus();refreshSummary()};
+   frame.onclick=event=>{let rect=img.getBoundingClientRect();r.center_x=Math.max(0,Math.min(r.width,Math.round((event.clientX-rect.left)/rect.width*r.width)));recenter()};
+   redraw();cards.append(card);
+  }
+  section.append(cards);root.append(section);
+ }
+ refreshSummary();
+}
+document.getElementById('center-detected').onclick=()=>{
+ if(!confirm('Replace current can-center choices with the improved detected centers and move the included crop boxes? Check every changed crop again.'))return;
+ let changed=0,clamped=0,invalid=0;
+ for(const r of data.records){if(!r.include)continue;const old=r.center_x;r.center_x=recommendedCenters[r.id];if(old!==r.center_x)r.reviewed=false;const result=centerCrop(r);if(result.error)invalid++;else{if(result.changed||old!==r.center_x)changed++;if(result.clamped)clamped++}}
+ render();alert(`Updated ${changed} can centers. ${clamped} crops could not be centered at the image edge; ${invalid} had invalid coordinates. Review every changed crop.`);
+};
+document.getElementById('center-all').onclick=()=>{
+ if(!confirm('Center all included crops on their currently selected can centers? Any moved crop must be reviewed again.'))return;
+ let changed=0,clamped=0,invalid=0;
+ for(const r of data.records){if(!r.include)continue;let result=centerCrop(r);if(result.error)invalid++;else {if(result.changed)changed++;if(result.clamped)clamped++}}
+ render();alert(`Centered ${changed} crops. ${clamped} could not be fully centered at the image edge; ${invalid} had invalid coordinates. Please review all crops.`);
+};
+document.getElementById('apply-margin-all').onclick=()=>{
+ const percent=selectedMargin();if(percent===null)return;
+ if(!confirm(`Apply a ${percent}% margin to all included photos? This replaces their current crop adjustments. Changed crops must be reviewed again.`))return;
+ let changed=0,clamped=0,missing=0,misses=0;
+ for(const r of data.records){if(!r.include)continue;const result=applyCropMargin(r,percent);recordMarginWarning(r,result);if(result.error)missing++;else{if(result.changed)changed++;if(result.clamped)clamped++;if(result.missesBounds)misses++}}
+ data.crop_margin=percent;render();alert(`Updated ${changed} crop(s). ${missing} had no usable bounds or center and were skipped; ${clamped} were limited by photo edges; ${misses} do not contain all detected bounds. Inspect crops, particularly those near edges.`);
+};
+document.getElementById('review-all').onclick=()=>{
+ const selected=data.records.filter(r=>r.include);if(!selected.length){alert('No photos are selected for output.');return}
+ const excluded=data.records.length-selected.length,warnings=selected.filter(r=>focusWarning(r)).length,invalid=selected.filter(r=>!proposedName(r)).length;
+ let message=`Check Reviewed for all ${selected.length} selected photos? ${excluded} excluded photo(s) will remain unchecked.`;
+ if(warnings)message+=` ${warnings} selected photo(s) have a focus warning.`;
+ if(invalid)message+=` ${invalid} selected photo(s) have an incomplete or invalid proposed filename and must be corrected before output.`;
+ message+=' Please inspect the images, crop and view assignments before output.';if(!confirm(message))return;
+ for(const r of data.records)r.reviewed=!!r.include;render();
+};
+document.getElementById('focus-threshold').onchange=event=>{let n=Number(event.target.value),old=data.focus_threshold??400;if(!Number.isFinite(n)||n<0){alert('Enter a nonnegative focus threshold.');event.target.value=old;return}for(const r of data.records)if(!focusWarning(r,old)&&focusWarning(r,n))r.reviewed=false;data.focus_threshold=n;render()};
+contrast.onchange=()=>{data.contrast=contrast.value;data.records.forEach(r=>{if(r.include)r.reviewed=false});render()};
+auction.onchange=()=>{data.auction=auction.value;data.records.forEach(r=>r.reviewed=false);render()};
+let savedOutputPlan=null, processing=false;
+const processButton=document.getElementById('process-output'),outputStatus=document.getElementById('output-status');
+const localBridge=location.protocol==='http:' && location.hostname==='127.0.0.1';
+function outputPlan(){return {...data,plan_kind:'reviewed-output',records:data.records.filter(r=>r.include===true&&r.reviewed===true)}}
+function updateOutputButton(){
+ const matches=!!savedOutputPlan && JSON.stringify(outputPlan())===savedOutputPlan;
+ processButton.disabled=!localBridge||!matches||processing;
+ if(!localBridge)outputStatus.textContent='To create output here, open this review through the updated desktop app and load your saved reviewed plan.';
+ else if(!processing && !matches)outputStatus.textContent='Save a reviewed plan or load an existing reviewed plan to enable Create output images. Save again after making changes.';
+ else if(!processing && matches && !outputStatus.dataset.finished)outputStatus.textContent='Reviewed plan ready. Click Create output images; the desktop app will ask where to save them.';
+}
+function rememberOutputPlan(){savedOutputPlan=JSON.stringify(outputPlan());delete outputStatus.dataset.finished;updateOutputButton()}
+// Review controls can change records through both input events and buttons.
+for(const type of ['click','change','input'])document.addEventListener(type,()=>setTimeout(updateOutputButton,0));
+async function pollOutput(){
+ try{
+  const response=await fetch('status',{cache:'no-store'}),status=await response.json();
+  if(!response.ok)throw Error(status.error||'Could not read progress');
+  outputStatus.textContent=status.message+(status.output?' Output folder: '+status.output:'');
+  processing=['choosing','running'].includes(status.state);
+  if(processing)setTimeout(pollOutput,1500);
+  else {outputStatus.dataset.finished='yes';updateOutputButton()}
+ }catch(error){processing=false;outputStatus.dataset.finished='yes';outputStatus.textContent='Connection to the desktop app was lost. Check its Progress box before retrying: '+error.message;updateOutputButton()}
+}
+processButton.onclick=async()=>{
+ if(!localBridge||processing||!savedOutputPlan||JSON.stringify(outputPlan())!==savedOutputPlan){updateOutputButton();return}
+ if(!confirm('Create cropped JPEGs using the saved reviewed plan? The desktop app will ask where to put the new output folder.'))return;
+ processing=true;updateOutputButton();outputStatus.textContent='Contacting the desktop app…';
+ try{
+  const response=await fetch('process',{method:'POST',headers:{'Content-Type':'application/json'},body:savedOutputPlan});
+  const result=await response.json();if(!response.ok)throw Error(result.error||'Could not start processing');
+  await pollOutput();
+ }catch(error){processing=false;outputStatus.dataset.finished='yes';outputStatus.textContent='Could not confirm whether processing started. Check the desktop Progress box and output folder before retrying: '+error.message;updateOutputButton()}
+};
+function saveJSON(value,filename){let blob=new Blob([JSON.stringify(value,null,2)],{type:'application/json'}),a=el('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+document.getElementById('download').onclick=()=>{
+ const records=data.records.filter(r=>r.include===true&&r.reviewed===true);
+ if(!records.length){alert('No photos are both included and marked Reviewed.');return}
+ saveJSON({...data,plan_kind:'reviewed-output',records},'reviewed-plan.json');rememberOutputPlan();
+};
+document.getElementById('save-work').onclick=()=>saveJSON({...data,plan_kind:'working-full'},'working-review.json');
+document.getElementById('load').onchange=async ev=>{try{
+ const loaded=JSON.parse(await ev.target.files[0].text());
+ if(loaded.version!==1||loaded.source_dir!==initial.source_dir||!Array.isArray(loaded.records))throw Error('This plan does not match this review');
+ const reference=new Map(initial.records.map(r=>[r.id,r])),seen=new Set();
+ for(const r of loaded.records){const original=reference.get(r.id);if(!original||seen.has(r.id)||r.source!==original.source||r.sha256!==original.sha256)throw Error('This plan does not match this review');seen.add(r.id)}
+ if(loaded.plan_kind==='reviewed-output'){
+  if(loaded.records.some(r=>r.include!==true||r.reviewed!==true))throw Error('A reviewed plan must contain only included and reviewed photos');
+  const saved=new Map(loaded.records.map(r=>[r.id,r]));
+  loaded.records=initial.records.map(base=>saved.has(base.id)?saved.get(base.id):({...JSON.parse(JSON.stringify(base)),include:false,reviewed:false}));
+ }else if(loaded.records.length!==initial.records.length||loaded.records.some((r,i)=>r.id!==initial.records[i].id))throw Error('This plan does not match this review');
+ if(!loaded.contrast){loaded.contrast='full';loaded.records.forEach(r=>r.reviewed=false)}
+ loaded.focus_threshold??=400;loaded.records.forEach((r,i)=>{if(r.focus_score===undefined){r.focus_score=recommendedFocus[i];if(focusWarning(r,loaded.focus_threshold))r.reviewed=false}});data=loaded;document.getElementById('crop-margin').value=Number.isFinite(data.crop_margin)?data.crop_margin:20;render();savedOutputPlan=null;if(loaded.plan_kind==='reviewed-output'&&outputPlan().records.length===seen.size&&seen.size)rememberOutputPlan();else updateOutputButton()
+}catch(e){alert('Could not load plan: '+e.message)}};
+render();updateOutputButton();
+</script></body></html>
